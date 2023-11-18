@@ -64,9 +64,13 @@ public class TransactionController {
     }
 
     @DeleteMapping("/deleteMultipleTransactions")
-    public ResponseEntity<Void> deleteTransaction(@RequestBody List<Long> ids) {
-        transactionService.deleteAllTransactionsWithID(ids);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<String> deleteTransaction(@RequestBody List<Long> ids) {
+        try {
+            transactionService.deleteAllTransactionsWithID(ids);
+            return new ResponseEntity<>("Transactions successfully deleted", HttpStatus.NO_CONTENT);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>("One or more transactions not found", HttpStatus.NOT_FOUND);
+        }
     }
 }
 
