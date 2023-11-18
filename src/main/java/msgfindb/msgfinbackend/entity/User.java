@@ -18,7 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class User {
     @jakarta.persistence.Id
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
     private String username;
@@ -26,13 +26,6 @@ public class User {
 
     //private LocalDateTime lastUpdated;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
 
     public void setPassword(String password) {
         this.password = password;
