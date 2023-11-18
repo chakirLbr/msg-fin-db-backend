@@ -3,8 +3,8 @@ package msgfindb.msgfinbackend.service;
 import msgfindb.msgfinbackend.entity.Transaction;
 import msgfindb.msgfinbackend.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,8 +17,9 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+
+    public Page<Transaction> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable);
     }
 
     public Transaction createTransaction(Transaction transaction) {
