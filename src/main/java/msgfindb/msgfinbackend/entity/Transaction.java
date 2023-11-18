@@ -23,6 +23,5 @@ public class Transaction {
     private String category;
     private Long accountId;
 
-
 }
 
