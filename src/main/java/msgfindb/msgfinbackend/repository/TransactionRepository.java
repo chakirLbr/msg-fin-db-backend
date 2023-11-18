@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     // Find all transactions within a specific date range
-    List<Transaction> findByTransactionDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    List<Transaction> findByDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     // Find all transactions for a specific category
     List<Transaction> findByCategory(String category);
