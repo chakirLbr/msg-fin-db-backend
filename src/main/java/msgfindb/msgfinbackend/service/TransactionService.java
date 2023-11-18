@@ -3,6 +3,8 @@ package msgfindb.msgfinbackend.service;
 import msgfindb.msgfinbackend.entity.Transaction;
 import msgfindb.msgfinbackend.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -50,6 +52,7 @@ public class TransactionService {
         } else {
             throw new NoSuchElementException("Transaction not found with id: " + id);
         }
+
     }
     public Transaction saveTransaction(Transaction transaction){
         return transactionRepository.save(transaction);
