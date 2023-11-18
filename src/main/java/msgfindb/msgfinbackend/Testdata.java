@@ -23,9 +23,12 @@ public class Testdata {
         Random random = new Random();
         for (int i = 0; i < 10; i++) {
             Transaction transaction = new Transaction();
-            transaction.setTransactionDate(LocalDateTime.now());
+            transaction.setDate(LocalDateTime.now());
             transaction.setAmount(BigDecimal.valueOf(random.nextInt()));
             transaction.setCategory("Miete");
+            transaction.setDescription("this is just a test description ");
+            transaction.setName(" transaction");
+            transaction.setAccountId(1234L);
             this.transactionRepository.save(transaction);
         }
     }
