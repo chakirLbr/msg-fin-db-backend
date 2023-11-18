@@ -1,30 +1,36 @@
 package msgfindb.msgfinbackend.service;
 
 import msgfindb.msgfinbackend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import msgfindb.msgfinbackend.entity.User;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 
+@Service
 public class UserService {
-    UserRepository userRepository;
-    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserRepository userRepository;
 
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    public User save(User user) {
-        user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-        return this.userRepository.save(user);
     }
 
     public User getUserByUsernameAndPassword(String username, String password) {
         return userRepository.findByUsernameAndPassword(username, password);
     }
+    public User getUserByName(String username){
+        return userRepository.findByUsername(username);
+    }
+    public List<User> getAllusers(){
+        return userRepository.findAll();
+    }
 
-    public void registerUser(User user) {
-
+    public void save(User user){
+        userRepository.save(user);
     }
 }
