@@ -42,5 +42,11 @@ public class TransactionController {
         transactionService.deleteTransaction(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @DeleteMapping("/deleteMultipleTransactions")
+    public ResponseEntity<Void> deleteTransaction(@RequestBody List<Long> ids) {
+        transactionService.deleteAllTransactionsWithID(ids);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
 

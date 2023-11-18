@@ -14,6 +14,7 @@ public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
@@ -21,6 +22,7 @@ public class TransactionService {
     public Transaction createTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }
+
     public Transaction getTransactionById(Long id) {
         return transactionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + id));
@@ -44,6 +46,10 @@ public class TransactionService {
         }
     }
 
+    public void deleteAllTransactionsWithID(List<Long> ids) {
+        transactionRepository.deleteAllById(ids);
+    }
+
     public void deleteTransaction(Long id) {
         if (transactionRepository.existsById(id)) {
             transactionRepository.deleteById(id);
@@ -51,7 +57,8 @@ public class TransactionService {
             throw new NoSuchElementException("Transaction not found with id: " + id);
         }
     }
-    public Transaction saveTransaction(Transaction transaction){
+
+    public Transaction saveTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }
 
