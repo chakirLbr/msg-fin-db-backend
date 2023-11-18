@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -21,9 +22,18 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
+    @GetMapping("/getTransactionsPaginated")
+    public ResponseEntity<Page<Transaction>> getAllTransactions(
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam Map<String, String> filters) {
+        Page<Transaction> transactions = transactionService.getTransactionsPaginated(pageable, filters);
+        return new ResponseEntity<>(transactions, HttpStatus.OK);
+    }
+
+    // In TransactionController class
     @GetMapping("/getAllTransactions")
-    public ResponseEntity<Page<Transaction>> getAllTransactions(@PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<Transaction> transactions = transactionService.getAllTransactions(pageable);
+    public ResponseEntity<List<Transaction>> getAllTransactions() {
+        List<Transaction> transactions = transactionService.getAllTransactions();
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
 
