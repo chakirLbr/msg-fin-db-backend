@@ -17,15 +17,12 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String description;
+    private String name;
     private BigDecimal amount;
-    private LocalDateTime transactionDate;
-
-
-    // Other fields as needed
+    private LocalDateTime date;
     private String category;
+    private Long accountId;
 
-    @ManyToOne
-    @JoinColumn(name = "account_id")
-    private Account account;
+
 }
 
