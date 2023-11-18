@@ -1,47 +1,46 @@
 package msgfindb.msgfinbackend.controller;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.ui.Model;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import msgfindb.msgfinbackend.entity.User;
 import msgfindb.msgfinbackend.service.UserService;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 public class UserController {
     UserService userService;
-    PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
-    public String login(String username, String password, Model model) {
+    public ResponseEntity<Object> login(@RequestParam String username, @RequestParam String password) {
         // Retrieve the user from the user service
-        User user = userService.getUserByUsername(username);
-
-        // Check if the user exists and the password is correct
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            model.addAttribute("username", username);
-            return "welcome"; // Redirect to a welcome page or any other page
-        } else {
-            model.addAttribute("error", "Invalid username or password");
-            return "login"; // Redirect back to the login page with an error message
+        User user = userService.getUserByUsernameAndPassword(username, password);
+        if (user == null) {
+            String message = "Username is false";
+            return ResponseEntity.badRequest().body(message);
+        }else {
+            if (user.getPassword().equals(password)){
+                return new ResponseEntity<>(user, HttpStatus.OK);
+            }
+            else {
+                String message = "Password is false";
+                return ResponseEntity.badRequest().body(message);
+            }
         }
     }
-
     @PostMapping("/register")
-    public String register(User user, Model model, String password) {
-
-        // Check if the username is already taken
-        if (userService.getUserByUsername(user.getUsername()) != null) {
-            model.addAttribute("error", "Username already exists. Please choose another.");
-            return "register"; // Redirect back to the registration page with an error message
+    public ResponseEntity<Object> register(String username, String password) {
+        User user = userService.getUserByUsernameAndPassword(username, password);
+        if (user == null){
+            User newuser = new User();
+            newuser.setUsername(username);
+            newuser.setPassword(password);
+            return new ResponseEntity<>(user, HttpStatus.OK);
+        }else {
+            String message = "Username already exists ";
+            return ResponseEntity.badRequest().body(message);
         }
-        // Encode the password before saving it
-        user.setPassword(passwordEncoder.encode(password));
-
-        // Save the user
-        userService.save(user);
-
-        // Redirect to a success page or login page
-        return "redirect:/login";
+     }
     }
-}
