@@ -16,7 +16,6 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
     private String description;
     private BigDecimal amount;
     private LocalDateTime transactionDate;

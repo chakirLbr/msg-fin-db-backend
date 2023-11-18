@@ -21,6 +21,9 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
+    public Transaction saveTransaction(Transaction transaction){
+        return transactionRepository.save(transaction);
+    }
 
 
 
