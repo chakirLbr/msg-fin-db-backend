@@ -3,6 +3,8 @@ package msgfindb.msgfinbackend.service;
 import msgfindb.msgfinbackend.entity.Transaction;
 import msgfindb.msgfinbackend.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,13 +16,16 @@ public class TransactionService {
 
     @Autowired
     private TransactionRepository transactionRepository;
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll();
+
+
+    public Page<Transaction> getAllTransactions(Pageable pageable) {
+        return transactionRepository.findAll(pageable);
     }
 
     public Transaction createTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }
+
     public Transaction getTransactionById(Long id) {
         return transactionRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + id));
@@ -44,14 +49,20 @@ public class TransactionService {
         }
     }
 
+    public void deleteAllTransactionsWithID(List<Long> ids) {
+        transactionRepository.deleteAllById(ids);
+    }
+
     public void deleteTransaction(Long id) {
         if (transactionRepository.existsById(id)) {
             transactionRepository.deleteById(id);
         } else {
             throw new NoSuchElementException("Transaction not found with id: " + id);
         }
+
     }
-    public Transaction saveTransaction(Transaction transaction){
+
+    public Transaction saveTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
     }
 
