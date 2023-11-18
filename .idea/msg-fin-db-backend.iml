@@ -131,4 +131,7 @@
     <orderEntry type="library" name="Maven: com.mysql:mysql-connector-j:8.0.33" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.18.30" level="project" />
   </component>
+  <component name="SonarLintModuleSettings">
+    <option name="uniqueId" value="ea0b8d4b-0c05-48f2-81c6-e962607d9296" />
+  </component>
 </module>

@@ -19,4 +19,12 @@ public class UserService {
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
         return this.userRepository.save(user);
     }
+
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public void registerUser(User user) {
+
+    }
 }

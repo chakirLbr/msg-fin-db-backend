@@ -14,18 +14,16 @@ import lombok.Setter;
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String description;
     private BigDecimal amount;
     private LocalDateTime transactionDate;
 
-    // Other fields as needed
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    // Other fields as needed
+    private String category;
 
     @ManyToOne
     @JoinColumn(name = "account_id")
