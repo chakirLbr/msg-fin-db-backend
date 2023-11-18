@@ -15,7 +15,6 @@ import org.antlr.v4.runtime.misc.NotNull;
 @Getter
 @Setter
 public class Account {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "ID", updatable = false)
