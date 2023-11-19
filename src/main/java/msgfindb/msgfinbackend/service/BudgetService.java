@@ -8,9 +8,7 @@ import msgfindb.msgfinbackend.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 @Service
 public class BudgetService {
@@ -39,15 +37,35 @@ public class BudgetService {
         return result;
     }
 
+    public Budget getBudgetById(Long id) {
+        return budgetRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id));
+    }
+
+    public Budget updateBudget(Long id, Budget newBudget) {
+        Optional<Budget> optionalBudget = budgetRepository.findById(id);
+
+        if (optionalBudget.isPresent()) {
+            Budget existingBudget = optionalBudget.get();
+            existingBudget.setCategory(newBudget.getCategory());
+            existingBudget.setCurrentAmount(newBudget.getCurrentAmount());
+            existingBudget.setPlannedAmount(newBudget.getPlannedAmount());
+            return budgetRepository.save(existingBudget);
+        }
+
+        return null;
+    }
+    public int updatePlannedAmount(Long id, BigDecimal newPlannedAmount) {
+        return budgetRepository.updatePlannedAmountById(id, newPlannedAmount);
+    }
 
 
-
-
-
-
-
-
-
+    public void deleteBudget(Long id) {
+        if (budgetRepository.existsById(id)) {
+            budgetRepository.deleteById(id);
+        } else {
+            throw new NoSuchElementException("Budget not found with id: " + id);
+        }
+    }
 
     // Add Budget
     public Budget createBudget(Budget budget) {
