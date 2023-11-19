@@ -14,10 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    boolean existsByCategoryAndUserId(String category, Long userId);
 
-    Optional<Budget> findByCategoryAndUserId(String category, Long userId);
-    // Custom query method to find budgets by category
     List<Budget> findByCategory(String category);
 
     // Custom query method to find budgets with current amount greater than a specified value
