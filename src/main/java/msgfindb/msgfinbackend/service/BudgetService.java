@@ -46,6 +46,8 @@ public class BudgetService {
         transactions.forEach(t -> allCategories.add(t.getCategory()));
         budgets.forEach(b -> allCategories.add(b.getCategory()));
 
+        List<Budget> updatedBudgets = new ArrayList<>();
+
         // Process each category
         for (String category : allCategories) {
             // Find or create the budget object for each category
@@ -59,15 +61,20 @@ public class BudgetService {
             budget.setCurrentAmount(aggregatedActualBudget.getOrDefault(category, BigDecimal.ZERO));
             budget.setUserId(userId);
 
-            // Save new budgets to the repository and add to the budgets list if not already present
-            if (budget.getId() == null) {
+            // Save new budgets to the repository and add to the updatedBudgets list if not already present
+            if (budget.getId() == null && budget.getCurrentAmount().compareTo(BigDecimal.ZERO) > 0) {
                 budgetRepository.save(budget);
-                budgets.add(budget);
+            }
+
+            // Add to updatedBudgets only if there's a relevant transaction or existing budget
+            if (budget.getCurrentAmount().compareTo(BigDecimal.ZERO) > 0 || (budget.getId() != null && budgets.contains(budget))) {
+                updatedBudgets.add(budget);
             }
         }
 
-        return budgets;
+        return updatedBudgets;
     }
+
 
     // Create a budget for a specific user
     public Budget createBudgetForUser(Long userId, Budget budget) {
