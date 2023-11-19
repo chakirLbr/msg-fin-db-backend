@@ -123,6 +123,23 @@ public class BudgetController {
         }
     }
 
+    // Endpoint to get the budget adherence level
+    @GetMapping("/adherenceLevel/{userId}")
+    public ResponseEntity<Object> getBudgetAdherenceLevel(@PathVariable Long userId) {
+        try {
+            String adherenceLevel = budgetService.getBudgetAdherenceLevel(userId);
+            Map<String, String> response = new HashMap<>();
+            response.put("level", adherenceLevel);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            ErrorResponse errorResponse = new ErrorResponse("User not found with ID: " + userId, HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Error retrieving budget adherence level: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     // Delete multiple budgets for a specific user
     @DeleteMapping("/deleteMultipleBudgets/{userId}")

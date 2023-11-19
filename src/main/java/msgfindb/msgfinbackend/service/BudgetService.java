@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -94,6 +95,39 @@ public class BudgetService {
         return budgetRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id + " for User ID: " + userId));
     }
+
+    // Method to determine budget adherence level
+    public String getBudgetAdherenceLevel(Long userId) {
+        List<Budget> budgets = listAllBudgets(userId);
+        BigDecimal totalPlanned = BigDecimal.ZERO;
+        BigDecimal totalActual = BigDecimal.ZERO;
+
+        for (Budget budget : budgets) {
+            BigDecimal plannedAmount = budget.getPlannedAmount() != null ? budget.getPlannedAmount() : BigDecimal.ZERO;
+            BigDecimal currentAmount = budget.getCurrentAmount() != null ? budget.getCurrentAmount() : BigDecimal.ZERO;
+
+            totalPlanned = totalPlanned.add(plannedAmount);
+            totalActual = totalActual.add(currentAmount);
+        }
+
+        if (totalPlanned.compareTo(BigDecimal.ZERO) == 0) {
+            // Handle the case where totalPlanned is zero to avoid division by zero
+            return "Undefined"; // or some appropriate handling
+        }
+
+        BigDecimal difference = totalPlanned.subtract(totalActual).abs();
+        BigDecimal percentageDifference = difference.multiply(new BigDecimal(100)).divide(totalPlanned, 2, RoundingMode.HALF_UP);
+
+        // TODO: ADJUST PERCENTAGES
+        if (percentageDifference.compareTo(new BigDecimal(33)) <= 0) {
+            return "Gold";
+        } else if (percentageDifference.compareTo(new BigDecimal(66)) <= 0) {
+            return "Silver";
+        } else {
+            return "Bronze";
+        }
+    }
+
 
     // Delete all budgets for a specific user
     public void deleteAllBudgetsForUser(Long userId, List<Long> budgetIds) {
