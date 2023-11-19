@@ -3,11 +3,16 @@ package msgfindb.msgfinbackend.controller;
 import msgfindb.msgfinbackend.entity.Transaction;
 import msgfindb.msgfinbackend.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -17,11 +22,21 @@ public class TransactionController {
     @Autowired
     private TransactionService transactionService;
 
-    @GetMapping("getAllTransactions")
+    @GetMapping("/getTransactionsPaginated")
+    public ResponseEntity<Page<Transaction>> getAllTransactions(
+            @PageableDefault(sort = "date", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam Map<String, String> filters) {
+        Page<Transaction> transactions = transactionService.getTransactionsPaginated(pageable, filters);
+        return new ResponseEntity<>(transactions, HttpStatus.OK);
+    }
+
+    // In TransactionController class
+    @GetMapping("/getAllTransactions")
     public ResponseEntity<List<Transaction>> getAllTransactions() {
         List<Transaction> transactions = transactionService.getAllTransactions();
         return new ResponseEntity<>(transactions, HttpStatus.OK);
     }
+
     @GetMapping("/getTransaction/{id}")
     public ResponseEntity<String> getTransactionById(@PathVariable Long id) {
         try {

@@ -1,9 +1,9 @@
 package msgfindb.msgfinbackend.repository;
 
 import jakarta.transaction.Transactional;
-import msgfindb.msgfinbackend.entity.Account;
 import msgfindb.msgfinbackend.entity.Transaction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,8 +12,9 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
     // Find all transactions within a specific date range
     List<Transaction> findByDateBetween(LocalDateTime startDate, LocalDateTime endDate);
 
@@ -37,6 +38,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     // Find the total amount of transactions for a specific category and account
     @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.category = :category AND t.accountId = :accountId")
     BigDecimal getTotalAmountForCategoryAndAccount(@Param("category") String category, @Param("accountId") Long accountId);
+
     // Update transaction description by ID
     @Modifying
     @Transactional

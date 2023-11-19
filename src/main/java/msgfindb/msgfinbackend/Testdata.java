@@ -28,7 +28,7 @@ public class Testdata {
             transaction.setCategory("Miete");
             transaction.setDescription("this is just a test description ");
             transaction.setName(" transaction");
-            transaction.setAccountId(1234L);
+            transaction.setAccountId(234L);
             this.transactionRepository.save(transaction);
         }
     }
