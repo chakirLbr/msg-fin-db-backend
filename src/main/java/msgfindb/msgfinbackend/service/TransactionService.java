@@ -25,7 +25,6 @@ public class TransactionService {
     private TransactionRepository transactionRepository;
 
     public List<Transaction> getAllTransactionsByUserId(Long userId) {
-        // Assuming the repository has a method findByUserId
         return transactionRepository.findByUserId(userId);
     }
 
@@ -60,17 +59,13 @@ public class TransactionService {
                         case "equals":
                             predicates.add(criteriaBuilder.equal(path, value));
                             break;
-                        // Add more cases for other text-based match modes
-
                         case "lt":
                         case "lte":
                         case "gt":
                         case "gte":
-                            // Handle numeric comparisons
                             if (field.equals("amount")) {
                                 try {
                                     BigDecimal amount = new BigDecimal(value);
-                                    // Apply numeric comparison based on matchMode
                                     switch (matchMode) {
                                         case "lt":
                                             predicates.add(criteriaBuilder.lessThan(root.get(field), amount));
@@ -106,7 +101,6 @@ public class TransactionService {
                             predicates.add(inClause);
                             break;
                         case "between":
-                            // This assumes a numeric range given in 'value' like "10-20"
                             String[] range = value.split("-");
                             BigDecimal start = new BigDecimal(range[0]);
                             BigDecimal end = new BigDecimal(range[1]);
@@ -122,11 +116,9 @@ public class TransactionService {
                         case "dateIs":
                         case "dateBefore":
                         case "dateAfter":
-                            // Handle date comparisons
                             if (field.equals("date")) {
                                 try {
                                     LocalDateTime date2 = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay();
-                                    // Apply date comparison based on matchMode
                                     switch (matchMode) {
                                         case "dateIs":
                                             predicates.add(criteriaBuilder.equal(root.get(field), date2));
@@ -152,13 +144,11 @@ public class TransactionService {
     }
 
     public Transaction createTransaction(Long userId, Transaction transaction) {
-        // Set the userId for the transaction before saving
         transaction.setUserId(userId);
         return transactionRepository.save(transaction);
     }
 
     public Transaction getTransactionById(Long userId, Long transactionId) {
-        // Assuming the repository has a method findByIdAndUserId
         return transactionRepository.findByIdAndUserId(transactionId, userId)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + transactionId));
     }
@@ -167,7 +157,6 @@ public class TransactionService {
         Transaction transaction = transactionRepository.findByIdAndUserId(transactionId, userId)
                 .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + transactionId));
 
-        // Update the transaction details
         transaction.setName(updatedTransaction.getName());
         transaction.setDescription(updatedTransaction.getDescription());
         transaction.setAmount(updatedTransaction.getAmount());
@@ -186,7 +175,6 @@ public class TransactionService {
     }
 
     public void deleteAllTransactionsWithID(Long userId, List<Long> transactionIds) {
-        // Modify to delete only transactions belonging to the user
         transactionRepository.deleteByIdInAndUserId(transactionIds, userId);
     }
 
@@ -210,11 +198,9 @@ public class TransactionService {
     }
 
     public List<Transaction> getTransactionsForWeek(Long userId, LocalDate startOfWeek, LocalDate endOfWeek) {
-        // Convert LocalDate to LocalDateTime at the start and end of each day
         LocalDateTime startDateTime = startOfWeek.atStartOfDay();
         LocalDateTime endDateTime = endOfWeek.atTime(23, 59, 59);
 
-        // Assuming the repository has a method findByUserIdAndDateBetween
         return transactionRepository.findByUserIdAndDateBetween(userId, startDateTime, endDateTime);
     }
 

@@ -41,14 +41,14 @@ public class DataGenerator {
     private static Faker faker = new Faker();
 
     public void generateAndSaveData() {
-        List<User> users = generateUsers();
-        userRepository.saveAll(users); // Save users
+        List<User> users = this.generateUsers();
+        userRepository.saveAll(users);
 
         List<Transaction> transactions = generateTransactions(users);
-        transactionRepository.saveAll(transactions); // Save transactions
+        transactionRepository.saveAll(transactions);
 
         List<Budget> budgets = generateBudgets(users);
-        budgetRepository.saveAll(budgets); // Save budgets
+        budgetRepository.saveAll(budgets);
     }
 
     private List<Budget> generateBudgets(List<User> users) {
@@ -64,13 +64,13 @@ public class DataGenerator {
 
     private Budget createBudget(User user) {
         Budget budget = new Budget();
-        budget.setUserId(user.getId()); // Assuming Budget has a field for userId
+        budget.setUserId(user.getId());
         budget.setCategory(faker.commerce().department());
 
         if (faker.bool().bool()) {
             budget.setPlannedAmount(new BigDecimal(faker.number().randomDouble(2, 100, 1000)));
         } else {
-            budget.setPlannedAmount(null); // Some budgets have empty planned values
+            budget.setPlannedAmount(null);
         }
         return budget;
     }

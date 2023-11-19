@@ -111,7 +111,6 @@ public class BudgetService {
         }
 
         if (totalPlanned.compareTo(BigDecimal.ZERO) == 0) {
-            // Handle the case where totalPlanned is zero to avoid division by zero
             return "Undefined"; // or some appropriate handling
         }
 

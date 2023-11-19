@@ -56,6 +56,4 @@ public class UserData {
 
     private AccessRights rights;
     private String username;
-
-    // Constructor, getters and setters
 }

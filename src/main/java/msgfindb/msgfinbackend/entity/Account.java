@@ -22,9 +22,5 @@ public class Account {
     private Long id;
 
     private String name;
-
-    // Other fields as needed
-
-    // Getters and setters
 }
 
