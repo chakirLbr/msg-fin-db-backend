@@ -42,4 +42,11 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
     // Custom query method to delete a budget by its ID
     void deleteById(Long id);
 
+    @Query(value = "SELECT b.*, COALESCE(SUM(t.amount), 0) AS current_amount " +
+            "FROM Budget b " +
+            "LEFT JOIN Transaction t ON b.category = t.category " +
+            "WHERE b.user_id = :userId " +
+            "GROUP BY b.id, b.category, b.current_amount", nativeQuery = true)
+    List<Budget> listAllBudgets(@Param("userId") Long userId);
+
 }
