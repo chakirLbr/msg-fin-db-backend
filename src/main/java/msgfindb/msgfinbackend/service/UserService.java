@@ -1,36 +1,52 @@
 package msgfindb.msgfinbackend.service;
 
+import msgfindb.msgfinbackend.entity.User;
 import msgfindb.msgfinbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import msgfindb.msgfinbackend.entity.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
 public class UserService {
 
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
     @Autowired
-    private UserRepository userRepository;
-
-
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User getUserByUsernameAndPassword(String username, String password) {
-        return userRepository.findByUsernameAndPassword(username, password);
+    public Optional<User> getUserByName(String username) {
+        return userRepository.findByUsername(username.toLowerCase());
     }
-    public User getUserByName(String username){
-        return userRepository.findByUsername(username);
+
+    public boolean verifyUserPassword(String username, String password) {
+        Optional<User> user = getUserByName(username.toLowerCase());
+        return user.filter(value -> passwordEncoder.matches(password, value.getPassword())).isPresent();
     }
-    public List<User> getAllusers(){
+
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username.toLowerCase());
+    }
+
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    public void save(User user){
-        userRepository.save(user);
+    public User save(User user) {
+        user.setUsername(user.getUsername().toLowerCase());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
+
+    public List<User> getAllusers() {
+        return userRepository.findAll();
+    }
+
 }

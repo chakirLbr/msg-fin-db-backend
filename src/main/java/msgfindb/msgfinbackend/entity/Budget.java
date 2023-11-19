@@ -15,6 +15,7 @@ public class Budget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private Long userId;
     private String category;
     private BigDecimal currentAmount;
     private BigDecimal plannedAmount;

@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
@@ -21,39 +22,31 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     // Find all transactions for a specific category
     List<Transaction> findByCategory(String category);
 
-    // Find all transactions for a specific account
-    List<Transaction> findByAccountId(Long accountId);
 
-    // Find all transactions for a specific category and account
-    List<Transaction> findByCategoryAndAccountId(String category, Long accountId);
+    // Find all transactions for a specific user
+    List<Transaction> findByUserId(Long userId);
 
-    // Find the total amount of transactions for a specific category
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.category = :category")
-    BigDecimal getTotalAmountForCategory(@Param("category") String category);
+    // Find a transaction by ID and UserID
+    Optional<Transaction> findByIdAndUserId(Long id, Long userId);
 
-    // Find the total amount of transactions for a specific account
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.accountId = :accountId")
-    BigDecimal getTotalAmountForAccount(@Param("accountId") Long accountId);
+    // Check if a transaction exists by ID and UserID
+    boolean existsByIdAndUserId(Long id, Long userId);
 
-    // Find the total amount of transactions for a specific category and account
-    @Query("SELECT SUM(t.amount) FROM Transaction t WHERE t.category = :category AND t.accountId = :accountId")
-    BigDecimal getTotalAmountForCategoryAndAccount(@Param("category") String category, @Param("accountId") Long accountId);
+    @Query("SELECT t FROM Transaction t WHERE t.userId = :userId AND t.date >= :startDate AND t.date <= :endDate")
+    List<Transaction> findByUserIdAndDateBetween(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    // Update transaction description by ID
+
+    // Delete transactions by ID and UserID
     @Modifying
     @Transactional
-    @Query("UPDATE Transaction t SET t.description = :description WHERE t.id = :id")
-    int updateTransactionDescription(@Param("id") Long id, @Param("description") String description);
+    @Query("DELETE FROM Transaction t WHERE t.id = :id AND t.userId = :userId")
+    void deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-    // Delete transactions by category
+    // Delete multiple transactions by ID list and UserID
     @Modifying
     @Transactional
-    @Query("DELETE FROM Transaction t WHERE t.category = :category")
-    void deleteTransactionsByCategory(@Param("category") String category);
+    @Query("DELETE FROM Transaction t WHERE t.id IN :ids AND t.userId = :userId")
+    void deleteByIdInAndUserId(@Param("ids") List<Long> ids, @Param("userId") Long userId);
 
-    // Delete transactions by account ID
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Transaction t WHERE t.accountId = :accountId")
-    void deleteTransactionsByAccountId(@Param("accountId") Long accountId);
+    List<Transaction> findByUserIdAndDateBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
 }

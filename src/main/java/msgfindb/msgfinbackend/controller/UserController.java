@@ -1,15 +1,16 @@
 package msgfindb.msgfinbackend.controller;
-import msgfindb.msgfinbackend.entity.Transaction;
-import msgfindb.msgfinbackend.repository.UserRepository;
+
+import msgfindb.msgfinbackend.ErrorResponse;
+import msgfindb.msgfinbackend.entity.User;
+import msgfindb.msgfinbackend.entity.UserData;
+import msgfindb.msgfinbackend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import msgfindb.msgfinbackend.entity.User;
-import msgfindb.msgfinbackend.service.UserService;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -19,41 +20,35 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestParam String username, @RequestParam String password) {
-        // Retrieve the user from the user service
-        User user = userService.getUserByName(username);
-        if (user == null) {
-            String message = "Username is false or doesn't exist";
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
-        } else {
-            if (user.getPassword().equals(password)) {
-                return new ResponseEntity<>(user, HttpStatus.OK);
-            } else {
-                String message = "Password is false";
-                return ResponseEntity.badRequest().body(message);
+    public ResponseEntity<Object> login(@RequestBody User loginUser) {
+        if (!userService.existsByUsername(loginUser.getUsername())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("Username does not exist", HttpStatus.NOT_FOUND.value()));
+        }
+
+        if (userService.verifyUserPassword(loginUser.getUsername(), loginUser.getPassword())) {
+            User user = userService.getUserByName(loginUser.getUsername()).orElse(null);
+            if (user != null) {
+                return ResponseEntity.ok().body(user.toUserData());
             }
         }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Username or password is incorrect", HttpStatus.UNAUTHORIZED.value()));
     }
 
-    @PostMapping("register")
-    public ResponseEntity<Object> register(@RequestParam String username, @RequestParam String password) {
-        User user = userService.getUserByUsernameAndPassword(username, password);
-        if (user == null){
-            User newuser = new User();
-            newuser.setUsername(username);
-            newuser.setPassword(password);
-            userService.save(newuser);
-            return new ResponseEntity<>(newuser, HttpStatus.CREATED);
-        }else {
-            String message = "Username already exists ";
-            return ResponseEntity.badRequest().body(message);
+
+    @PostMapping("/register")
+    public ResponseEntity<Object> register(@RequestBody User newUser) {
+        if (userService.existsByUsername(newUser.getUsername())) {
+            return ResponseEntity.badRequest().body("Username already exists");
         }
-     }
+        userService.save(newUser);
+        return new ResponseEntity<>(newUser.toUserData(), HttpStatus.CREATED);
+    }
+
     @GetMapping("getAllUsers")
-    public ResponseEntity<List<User>> getAllUser() {
-        List<User> users = userService.getAllusers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<List<UserData>> getAllUser() {
+        List<UserData> usersData = userService.getAllusers().stream().map(User::toUserData).collect(Collectors.toList());
+        return new ResponseEntity<>(usersData, HttpStatus.OK);
     }
-    }
+}

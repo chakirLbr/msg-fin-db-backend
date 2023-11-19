@@ -1,31 +1,27 @@
 package msgfindb.msgfinbackend;
 
-import com.mysql.cj.MysqlConnection;
-import com.mysql.cj.jdbc.integration.c3p0.MysqlConnectionTester;
-import msgfindb.msgfinbackend.entity.Transaction;
-import msgfindb.msgfinbackend.repository.TransactionRepository;
+import msgfindb.msgfinbackend.entity.User;
+import msgfindb.msgfinbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Random;
+import java.util.List;
+
 @SpringBootApplication
 public class MsgFinBackendApplication implements CommandLineRunner {
 
-	@Autowired
-	private Testdata testdata;
+    @Autowired
+    private DataGenerator dataGenerator;
 
-	public static void main(String[] args) {
-		SpringApplication.run(MsgFinBackendApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MsgFinBackendApplication.class, args);
+    }
 
-	@Override
-	public void run(String... args) {
-
-		testdata.createTestdata();
-	}
+    @Override
+    public void run(String... args) {
+        dataGenerator.generateAndSaveData();
+    }
 }
 

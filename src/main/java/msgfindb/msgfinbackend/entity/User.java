@@ -1,37 +1,45 @@
 package msgfindb.msgfinbackend.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import lombok.Data;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import lombok.Data;
-import org.springframework.security.core.userdetails.UserDetails;
+
+
 
 @Entity
-@Data
-@Setter
 @Getter
-
+@Setter
 public class User {
-    @jakarta.persistence.Id
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    private String firstname;
+    private String surname;
+    private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private AccessRights rights = AccessRights.USER; // Default value set here
+
+
+    @Column(nullable = false)
     private String username;
+
+    @Column(nullable = false)
     private String password;
 
-    //private LocalDateTime lastUpdated;
 
-
-    public void setPassword(String password) {
-        this.password = password;
+    public UserData toUserData() {
+        UserData userData = new UserData();
+        userData.setId(this.id);
+        userData.setFirstname(this.firstname);
+        userData.setSurname(this.surname);
+        userData.setEmail(this.email);
+        userData.setRights(this.rights);
+        userData.setUsername(this.username);
+        // Exclude the password field
+        return userData;
     }
 
-    public String getPassword() {
-        return password;
-    }
 }

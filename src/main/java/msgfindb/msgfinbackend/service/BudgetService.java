@@ -1,76 +1,102 @@
 package msgfindb.msgfinbackend.service;
 
-import jdk.jfr.Category;
 import msgfindb.msgfinbackend.entity.Budget;
 import msgfindb.msgfinbackend.entity.Transaction;
 import msgfindb.msgfinbackend.repository.BudgetRepository;
 import msgfindb.msgfinbackend.repository.TransactionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BudgetService {
+
+    @Autowired
     private BudgetRepository budgetRepository;
+
+    @Autowired
     private TransactionRepository transactionRepository;
-    public List<Budget> getAllBudgets() {
-        return budgetRepository.findAll();
-    }
-    // List all budgets for the current user by ID
+
+
+    // List all budgets for a specific user ID
     public List<Budget> listAllBudgets(Long userId) {
-        List<Budget> result = new ArrayList<>();
-        List<Transaction> transactions = transactionRepository.findAll();
-        List<Budget> budgets = getAllBudgets();
-        // Collect all unique categories from BudgetPlanning
-        for (Budget budget : budgets) {
-            double sum = 0;
-            String namecategory = budget.getCategory();
-            for (Transaction transaction: transactions ) {
-                if (transaction.getCategory().equals(namecategory)){
-                    sum += transaction.getAmount().doubleValue();
-                }
-                budget.setCurrentAmount(BigDecimal.valueOf(sum));
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
+        LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+        LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+
+        List<Transaction> transactions = transactionRepository.findByUserIdAndDateBetween(userId, startDateTime, endDateTime);
+        List<Budget> budgets = budgetRepository.findByUserId(userId);
+
+        // Aggregate actual budget from transactions
+        Map<String, BigDecimal> aggregatedActualBudget = transactions.stream()
+                .collect(Collectors.groupingBy(
+                        Transaction::getCategory,
+                        Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
+                ));
+
+        // Create a set of all categories (both from transactions and budgets)
+        Set<String> allCategories = new HashSet<>();
+        transactions.forEach(t -> allCategories.add(t.getCategory()));
+        budgets.forEach(b -> allCategories.add(b.getCategory()));
+
+        // Process each category
+        for (String category : allCategories) {
+            // Find or create the budget object for each category
+            Budget budget = budgets.stream()
+                    .filter(b -> b.getCategory().equals(category))
+                    .findFirst()
+                    .orElse(new Budget());
+
+            // Set or update properties
+            budget.setCategory(category);
+            budget.setCurrentAmount(aggregatedActualBudget.getOrDefault(category, BigDecimal.ZERO));
+            budget.setUserId(userId);
+
+            // Save new budgets to the repository and add to the budgets list if not already present
+            if (budget.getId() == null) {
+                budgetRepository.save(budget);
+                budgets.add(budget);
             }
-            result.add(budget);
-        }
-        return result;
-    }
-
-    public Budget getBudgetById(Long id) {
-        return budgetRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id));
-    }
-
-    public Budget updateBudget(Long id, Budget newBudget) {
-        Optional<Budget> optionalBudget = budgetRepository.findById(id);
-
-        if (optionalBudget.isPresent()) {
-            Budget existingBudget = optionalBudget.get();
-            existingBudget.setCategory(newBudget.getCategory());
-            existingBudget.setCurrentAmount(newBudget.getCurrentAmount());
-            existingBudget.setPlannedAmount(newBudget.getPlannedAmount());
-            return budgetRepository.save(existingBudget);
         }
 
-        return null;
-    }
-    public int updatePlannedAmount(Long id, BigDecimal newPlannedAmount) {
-        return budgetRepository.updatePlannedAmountById(id, newPlannedAmount);
+        return budgets;
     }
 
-
-    public void deleteBudget(Long id) {
-        if (budgetRepository.existsById(id)) {
-            budgetRepository.deleteById(id);
-        } else {
-            throw new NoSuchElementException("Budget not found with id: " + id);
-        }
-    }
-
-    // Add Budget
-    public Budget createBudget(Budget budget) {
+    // Create a budget for a specific user
+    public Budget createBudgetForUser(Long userId, Budget budget) {
         return budgetRepository.save(budget);
     }
 
+    // Update a budget for a specific user
+    public Budget updateBudgetForUser(Long userId, Long id, Budget newBudget) {
+        Budget existingBudget = budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id + " for User ID: " + userId));
+        existingBudget.setCategory(newBudget.getCategory());
+        existingBudget.setPlannedAmount(newBudget.getPlannedAmount());
+        return budgetRepository.save(existingBudget);
+    }
 
+    // Delete a budget for a specific user
+    public void deleteBudgetForUser(Long userId, Long id) {
+        Budget budget = budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id + " for User ID: " + userId));
+        budgetRepository.deleteById(budget.getId());
+    }
+
+    // Get a budget by ID and user
+    public Budget getBudgetByIdAndUser(Long id, Long userId) {
+        return budgetRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new NoSuchElementException("Budget not found with id: " + id + " for User ID: " + userId));
+    }
+
+    // Delete all budgets for a specific user
+    public void deleteAllBudgetsForUser(Long userId, List<Long> budgetIds) {
+        budgetRepository.deleteBudgetsByIdsAndUserId(budgetIds, userId);
+    }
 }

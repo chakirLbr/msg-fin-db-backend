@@ -24,20 +24,22 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    // In TransactionService class
-    public List<Transaction> getAllTransactions() {
-        return transactionRepository.findAll(); // Assuming you have a JPA repository
+    public List<Transaction> getAllTransactionsByUserId(Long userId) {
+        // Assuming the repository has a method findByUserId
+        return transactionRepository.findByUserId(userId);
     }
 
-
-    public Page<Transaction> getTransactionsPaginated(Pageable pageable, Map<String, String> filters) {
-        Specification<Transaction> spec = createSpecification(filters);
+    public Page<Transaction> getTransactionsPaginated(Long userId, Pageable pageable, Map<String, String> filters) {
+        Specification<Transaction> spec = createSpecificationWithUserId(userId, filters);
         return transactionRepository.findAll(spec, pageable);
     }
 
-    private Specification<Transaction> createSpecification(Map<String, String> filters) {
+    private Specification<Transaction> createSpecificationWithUserId(Long userId, Map<String, String> filters) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Add a predicate to filter by userId
+            predicates.add(criteriaBuilder.equal(root.get("userId"), userId));
 
             filters.forEach((key, value) -> {
                 if (key.startsWith("filter_")) {
@@ -149,48 +151,82 @@ public class TransactionService {
         };
     }
 
-    public Transaction createTransaction(Transaction transaction) {
+    public Transaction createTransaction(Long userId, Transaction transaction) {
+        // Set the userId for the transaction before saving
+        transaction.setUserId(userId);
         return transactionRepository.save(transaction);
     }
 
-    public Transaction getTransactionById(Long id) {
-        return transactionRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + id));
+    public Transaction getTransactionById(Long userId, Long transactionId) {
+        // Assuming the repository has a method findByIdAndUserId
+        return transactionRepository.findByIdAndUserId(transactionId, userId)
+                .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + transactionId));
     }
 
-    public Transaction updateTransaction(Long id, Transaction updatedTransaction) {
-        Optional<Transaction> optionalTransaction = transactionRepository.findById(id);
+    public Transaction updateTransaction(Long userId, Long transactionId, Transaction updatedTransaction) {
+        Transaction transaction = transactionRepository.findByIdAndUserId(transactionId, userId)
+                .orElseThrow(() -> new NoSuchElementException("Transaction not found with id: " + transactionId));
 
-        if (optionalTransaction.isPresent()) {
-            Transaction existingTransaction = optionalTransaction.get();
-            existingTransaction.setName(updatedTransaction.getName());
-            existingTransaction.setDescription(updatedTransaction.getDescription());
-            existingTransaction.setAmount(updatedTransaction.getAmount());
-            existingTransaction.setDate(updatedTransaction.getDate());
-            existingTransaction.setCategory(updatedTransaction.getCategory());
-            existingTransaction.setAccountId(updatedTransaction.getAccountId());
+        // Update the transaction details
+        transaction.setName(updatedTransaction.getName());
+        transaction.setDescription(updatedTransaction.getDescription());
+        transaction.setAmount(updatedTransaction.getAmount());
+        transaction.setDate(updatedTransaction.getDate());
+        transaction.setCategory(updatedTransaction.getCategory());
 
-            return transactionRepository.save(existingTransaction);
-        } else {
-            throw new NoSuchElementException("Transaction not found with id: " + id);
-        }
-    }
-
-    public void deleteAllTransactionsWithID(List<Long> ids) {
-        transactionRepository.deleteAllById(ids);
-    }
-
-    public void deleteTransaction(Long id) {
-        if (transactionRepository.existsById(id)) {
-            transactionRepository.deleteById(id);
-        } else {
-            throw new NoSuchElementException("Transaction not found with id: " + id);
-        }
-
-    }
-
-    public Transaction saveTransaction(Transaction transaction) {
         return transactionRepository.save(transaction);
+    }
+
+    public void deleteTransaction(Long userId, Long transactionId) {
+        if (transactionRepository.existsByIdAndUserId(transactionId, userId)) {
+            transactionRepository.deleteById(transactionId);
+        } else {
+            throw new NoSuchElementException("Transaction not found with id: " + transactionId);
+        }
+    }
+
+    public void deleteAllTransactionsWithID(Long userId, List<Long> transactionIds) {
+        // Modify to delete only transactions belonging to the user
+        transactionRepository.deleteByIdInAndUserId(transactionIds, userId);
+    }
+
+    public Map<String, BigDecimal> sumPositiveAndNegativeTransactions(Long userId) {
+        List<Transaction> transactions = getAllTransactionsByUserId(userId);
+        BigDecimal sumPositive = BigDecimal.ZERO;
+        BigDecimal sumNegative = BigDecimal.ZERO;
+
+        for (Transaction transaction : transactions) {
+            if (transaction.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+                sumPositive = sumPositive.add(transaction.getAmount());
+            } else {
+                sumNegative = sumNegative.add(transaction.getAmount());
+            }
+        }
+
+        Map<String, BigDecimal> sums = new HashMap<>();
+        sums.put("positive", sumPositive);
+        sums.put("negative", sumNegative);
+        return sums;
+    }
+
+    public List<Transaction> getTransactionsForWeek(Long userId, LocalDate startOfWeek, LocalDate endOfWeek) {
+        // Convert LocalDate to LocalDateTime at the start and end of each day
+        LocalDateTime startDateTime = startOfWeek.atStartOfDay();
+        LocalDateTime endDateTime = endOfWeek.atTime(23, 59, 59);
+
+        // Assuming the repository has a method findByUserIdAndDateBetween
+        return transactionRepository.findByUserIdAndDateBetween(userId, startDateTime, endDateTime);
+    }
+
+    public BigDecimal sumTransactionsForMonth(Long userId, String category) {
+        LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndDateBetween(userId, startOfMonth.atStartOfDay(), endOfMonth.atTime(23, 59, 59));
+
+        return transactions.stream()
+                .filter(t -> t.getCategory().equals(category))
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 
